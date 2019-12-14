@@ -710,15 +710,17 @@ function wpcom_vip_flush_wp_old_slug_redirect_cache( $post_id, $post, $post_befo
  * We're seeing an increase of urls that match this pattern: http://example.com/http://othersite.com/random_text
  * These then cause really slow lookups inside of wp_old_slug_redirect, since wp_old_slug redirect does not match on full urls but rather former slugs it's safe to skip the lookup for these. (Most of the calls are from bad ad providers that generate random urls)
  */
-function wpcom_vip_maybe_skip_old_slug_redirect(){
+function wpcom_vip_maybe_skip_old_slug_redirect() {
+	$uri = $_SERVER['DOCUMENT_URI'] ?? $_SERVER['REQUEST_URI'] ?? '';
 
 	//We look to see if a malformed url (represented by 'http:' ) is right after the starting / in DOCUMENT_URI hence position 1
-	if ( is_404() && ( 1 === strpos( $_SERVER['DOCUMENT_URI'], 'http:' ) || 1 === strpos( $_SERVER['DOCUMENT_URI'], 'https:' ) ) ) {
+	if ( is_404() && ( 1 === strpos( $uri, 'http:' ) || 1 === strpos( $uri, 'https:' ) ) ) {
 		remove_action( 'template_redirect', 'wp_old_slug_redirect' );
 		remove_action( 'template_redirect', 'wpcom_vip_wp_old_slug_redirect', 8 );
 	}
 
 }
+
 function wpcom_vip_enable_maybe_skip_old_slug_redirect() {
 	add_action( 'template_redirect', 'wpcom_vip_maybe_skip_old_slug_redirect', 7 ); //Run this before wpcom_vip_wp_old_slug_redirect so we can also remove our caching helper
 }
